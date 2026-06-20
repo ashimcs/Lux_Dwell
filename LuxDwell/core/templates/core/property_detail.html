@@ -1,0 +1,86 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row g-5">
+        <div class="col-lg-8">
+            {% if property.image %}
+                <img src="{{ property.image.url }}" class="img-fluid rounded-4 mb-4 shadow" alt="{{ property.title }}">
+            {% endif %}
+            <h1 class="font-playfair">{{ property.title }}</h1>
+            <p class="text-muted"><i class="bi bi-geo-alt"></i> {{ property.location }}</p>
+            <hr>
+            <h4 class="fw-bold">About this Estate</h4>
+            <p class="lead">{{ property.description }}</p>
+            
+            <div class="row g-3 mt-4">
+                <div class="col-6 col-md-3">
+                    <div class="p-3 border rounded-3 text-center bg-light">
+                        <i class="bi bi-door-open fs-4 d-block"></i>
+                        <small class="text-muted">Type</small>
+                        <div class="fw-bold">{{ property.property_type }}</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 border rounded-3 text-center bg-light">
+                        <i class="bi bi-arrows-fullscreen fs-4 d-block"></i>
+                        <small class="text-muted">Size</small>
+                        <div class="fw-bold">2,500 sqft</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-panel p-4 sticky-top shadow-sm" style="top: 20px; border-radius: 24px; background: white; border: 1px solid #eee;">
+                <h3 class="text-navy fw-bold">₹{{ property.price }}</h3>
+                <span class="badge {% if property.status == 'Available' %}bg-success{% else %}bg-warning{% endif %} mb-3">
+                    {{ property.status }}
+                </span>
+                
+                <hr>
+
+                
+                
+                <h5 class="fw-bold mb-3">Schedule a Viewing</h5>
+                
+                <form action="{% url 'book_property' property.id %}" method="POST" id="appointmentForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase" style="letter-spacing: 1px;">Preferred Date</label>
+                        <input type="date" name="appointment_date" id="viewing_date" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase" style="letter-spacing: 1px;">Preferred Time</label>
+                        <input type="time" name="appointment_time" class="form-control" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-uppercase" style="letter-spacing: 1px;">Your Message</label>
+                        <textarea name="message" class="form-control" rows="3" placeholder="I would like to see the..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100 rounded-pill py-3 fw-bold">
+                        Book Appointment
+                    </button>
+                    
+                    <p class="text-center text-muted x-small mt-3">
+                        <i class="bi bi-info-circle me-1"></i> The agent will confirm via your dashboard.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Prevent selecting past dates
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('viewing_date');
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('min', today);
+    });
+</script>
+
+{% endblock %}

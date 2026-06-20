@@ -1,0 +1,240 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<style>
+    /* 1. Ultra-Modern Container */
+    .register-container {
+        display: flex;
+        min-height: 85vh;
+        background: #fff;
+        border-radius: 40px;
+        overflow: hidden;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.1);
+        margin: 20px auto;
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    /* 2. Inspirational Visual Panel */
+    .register-visual {
+        flex: 1;
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.5)), 
+                    url('https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+        background-size: cover;
+        background-position: center;
+        padding: 80px 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        color: white;
+    }
+
+    .visual-tag {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        padding: 8px 20px;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        display: inline-block;
+        width: fit-content;
+    }
+
+    .register-visual h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 4rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 20px;
+    }
+
+    /* 3. Refined Form Side */
+    .register-form-area {
+        flex: 1.2;
+        padding: 80px 100px;
+        background: #FFFFFF;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .form-header h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 700;
+        color: var(--dark-navy);
+        margin-bottom: 10px;
+    }
+
+    .form-header p {
+        color: #64748B;
+        font-size: 1.1rem;
+        margin-bottom: 40px;
+    }
+
+    /* 4. Luxury Inputs */
+    .lux-label {
+        font-weight: 700;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #94A3B8;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .lux-input-group {
+        position: relative;
+        margin-bottom: 25px;
+    }
+
+    .lux-input-group i {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #CBD5E1;
+        font-size: 1.2rem;
+        transition: color 0.3s;
+    }
+
+    .lux-input {
+        width: 100%;
+        padding: 16px 20px 16px 55px;
+        border: 2px solid #F1F5F9;
+        border-radius: 18px;
+        background: #F8FAFC;
+        font-size: 1rem;
+        color: var(--dark-navy);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .lux-input:focus {
+        border-color: var(--primary-gold);
+        background: white;
+        box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+        outline: none;
+    }
+
+    .lux-input:focus + i {
+        color: var(--primary-gold);
+    }
+
+    /* 5. Gold Action Button */
+    .btn-lux-action {
+        background: var(--dark-navy);
+        color: white;
+        padding: 20px;
+        border-radius: 18px;
+        width: 100%;
+        font-weight: 700;
+        letter-spacing: 1px;
+        border: none;
+        transition: 0.4s;
+        margin-top: 15px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
+    }
+
+    .btn-lux-action:hover {
+        background: var(--primary-gold);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(212, 175, 55, 0.3);
+    }
+
+    @media (max-width: 1200px) {
+        .register-visual { display: none; }
+        .register-form-area { padding: 40px; }
+    }
+</style>
+
+<div class="register-container fade-in">
+    <div class="register-visual">
+        <div class="visual-tag">Elite Marketplace</div>
+        <div>
+            <h2>Design <br>Your <br><span style="color:var(--primary-gold)">Legacy.</span></h2>
+            <p>Access the world's most curated collection of architectural masterpieces and luxury estates.</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="small">Trusted by 5,000+ Agents</div>
+            <div class="vr"></div>
+            <div class="small">Global Presence</div>
+        </div>
+    </div>
+
+    <div class="register-form-area">
+        <div class="form-header">
+            <h3>Join LuxDwell</h3>
+            <p>Create your private account to start exploring.</p>
+        </div>
+
+        <form method="POST" id="mainRegForm">
+            {% csrf_token %}
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <span class="lux-label">Username</span>
+                    <div class="lux-input-group">
+                        <input type="text" name="username" class="lux-input" placeholder="james_lux" required>
+                        <i class="bi bi-person"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <span class="lux-label">Email Address</span>
+                    <div class="lux-input-group">
+                        <input type="email" name="email" class="lux-input" placeholder="james@luxury.com" required>
+                        <i class="bi bi-envelope"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <span class="lux-label">Phone Number</span>
+                    <div class="lux-input-group">
+                        <input type="text" name="phone_number" class="lux-input" placeholder="+1 (555) 000-0000" required>
+                        <i class="bi bi-telephone"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <span class="lux-label">Account Type</span>
+                    <div class="lux-input-group">
+                        <select name="role" class="lux-input" required>
+                            <option value="user">Private Client</option>
+                            <option value="agent">Certified Agent</option>
+                        </select>
+                        <i class="bi bi-briefcase"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <span class="lux-label">Access Password</span>
+                    <div class="lux-input-group">
+                        <input type="password" name="password" class="lux-input" placeholder="••••••••" required>
+                        <i class="bi bi-lock"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <span class="lux-label">Confirm Password</span>
+                    <div class="lux-input-group">
+                        <input type="password" name="confirm_password" class="lux-input" placeholder="••••••••" required>
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-lux-action" id="submitBtn">
+                INITIALIZE ACCOUNT
+            </button>
+        </form>
+
+        <p class="text-center mt-5 text-muted small">
+            Already have an account? <a href="{% url 'login' %}" class="fw-bold text-decoration-none" style="color:var(--primary-gold)">LOG IN</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    // Premium loading state interaction
+    document.getElementById('mainRegForm').onsubmit = function() {
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<span class="spinner-grow spinner-grow-sm me-2"></span> SECURING PROFILE...';
+        btn.style.pointerEvents = 'none';
+    };
+</script>
+{% endblock %}

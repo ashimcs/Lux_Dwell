@@ -1,0 +1,458 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+<style>
+    :root {
+        --lux-navy: #0a2540;
+        --lux-gold: #c5a059;
+        --lux-border: #e2e8f0;
+        --lux-success: #22c55e;
+        --lux-danger: #ef4444;
+    }
+
+    body { background-color: #f8fafc; }
+
+    /* Layout Components */
+    .glass-panel {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid var(--lux-border);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .profile-card {
+        padding: 40px;
+        background: linear-gradient(135deg, var(--lux-navy) 0%, #1a3a5a 100%);
+        color: white;
+        border-radius: 30px;
+        margin-bottom: 40px;
+    }
+
+    /* Filter Input Styling */
+    .filter-input {
+        height: 50px;
+        border-radius: 12px;
+        border: 1px solid var(--lux-border);
+        background: #f8fafc;
+    }
+    .filter-input:focus {
+        border-color: var(--lux-gold);
+        box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.1);
+        background: white;
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    
+    /* Active Filter Button State */
+    .btn-filter-active {
+        background-color: var(--lux-gold) !important;
+        color: white !important;
+        border-color: var(--lux-gold) !important;
+    }
+
+    /* 360 Trigger Styling */
+    .property-img-container { position: relative; cursor: pointer; overflow: hidden; border-radius: 16px; }
+    .view-360-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 37, 64, 0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: 0.4s ease; color: white; backdrop-filter: blur(2px); z-index: 2; }
+    .property-img-container:hover .view-360-overlay { opacity: 1; }
+    .badge-360 { position: absolute; top: 15px; right: 15px; background: var(--lux-gold); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; z-index: 10; }
+    #panorama-viewer { width: 100%; height: 500px; background: #000; border-radius: 12px; }
+
+    /* Tab Styling */
+    .nav-pills-lux { background: #fff; padding: 10px; border-radius: 20px; border: 1px solid var(--lux-border); }
+    .nav-pills-lux .nav-link { color: #64748b; font-weight: 600; border-radius: 15px; padding: 12px 25px; transition: 0.3s; }
+    .nav-pills-lux .nav-link.active { background-color: var(--lux-gold) !important; color: white !important; }
+
+    /* Appointment Info Styling */
+    .appointment-info { background: #f1f5f9; border-radius: 16px; padding: 15px; margin-bottom: 15px; display: flex; gap: 15px; align-items: center; border: 1px solid var(--lux-border); }
+    .agent-reply-box { background-color: #f0fdf4; border-left: 4px solid var(--lux-success); padding: 15px; border-radius: 12px; margin-top: 15px; }
+    .agent-reply-box.rejected { background-color: #fef2f2; border-left: 4px solid var(--lux-danger); }
+    .map-container { border-radius: 15px; overflow: hidden; border: 1px solid var(--lux-border); background: #eee; position: relative; }
+    .preview-label { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; font-size: 0.65rem; text-align: center; padding: 2px 0; z-index: 5; }
+
+    /* VIRTUAL PASS STYLING */
+    .pass-card { background: linear-gradient(135deg, var(--lux-navy) 0%, #1e3a5a 100%); color: white; border-radius: 25px; border: 2px solid var(--lux-gold); overflow: hidden; position: relative; }
+    .pass-header { background: rgba(197, 160, 89, 0.1); border-bottom: 1px dashed rgba(255,255,255,0.2); padding: 20px; text-align: center; }
+    .pass-body { padding: 25px; text-align: center; }
+    .qr-wrapper { background: white; padding: 10px; border-radius: 15px; display: inline-block; margin-bottom: 15px; border: 3px solid var(--lux-gold); }
+    .pass-footer { background: rgba(0,0,0,0.2); padding: 15px; font-size: 0.7rem; text-transform: uppercase; }
+    .pass-card::before, .pass-card::after { content: ""; position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 20%; z-index: 5; }
+    .pass-card::before { left: -10px; } .pass-card::after { right: -10px; }
+
+    .lifestyle-badge { font-size: 0.7rem; background: #f1f5f9; padding: 4px 10px; border-radius: 8px; color: var(--lux-navy); font-weight: 700; display: flex; align-items: center; gap: 5px; }
+    .calc-display { background: var(--lux-navy); color: white; padding: 40px; border-radius: 24px; text-align: center; }
+    .hover-danger:hover { color: var(--lux-danger) !important; transform: scale(1.2); transition: 0.2s; }
+</style>
+
+<div class="container py-5">
+    <div class="profile-card d-flex flex-wrap align-items-center justify-content-between shadow-lg">
+        <div class="d-flex align-items-center">
+            <div class="bg-white text-navy rounded-circle d-flex align-items-center justify-content-center me-4 shadow" style="width: 80px; height: 80px; font-size: 1.8rem; font-weight: 700; color: var(--lux-navy);">
+                {{ request.user.username|first|upper }}
+            </div>
+            <div>
+                <h2 class="font-playfair mb-1 text-white">Elite Dashboard: {{ request.user.username }}</h2>
+                <p class="mb-0 opacity-75 small"><i class="bi bi-envelope me-1"></i> {{ request.user.email }}</p>
+            </div>
+        </div>
+        <a href="{% url 'add_property' %}" class="btn btn-light rounded-pill px-4 text-navy fw-bold shadow-sm">List Property</a>
+    </div>
+
+    <ul class="nav nav-pills nav-pills-lux mb-5 justify-content-center shadow-sm" id="pills-tab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="pills-market-tab" data-bs-toggle="pill" data-bs-target="#pills-market" type="button" role="tab">Marketplace</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="pills-listings-tab" data-bs-toggle="pill" data-bs-target="#pills-listings" type="button" role="tab">My Listings</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="pills-enquiries-tab" data-bs-toggle="pill" data-bs-target="#pills-enquiries" type="button" role="tab">Enquiries {% if my_bookings %}<span class="badge bg-danger ms-1 rounded-pill">{{ my_bookings.count }}</span>{% endif %}</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="pills-calc-tab" data-bs-toggle="pill" data-bs-target="#pills-calc" type="button" role="tab">EMI Tools</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="pills-tabContent">
+        
+        <div class="tab-pane fade show active" id="pills-market" role="tabpanel">
+            
+            <div class="glass-panel p-3 mb-4 bg-white">
+                <form action="{% url 'user_dashboard' %}" method="GET" class="m-0">
+                    
+                    <div class="row g-2 align-items-center">
+                        <div class="col-lg-7">
+                            <div class="input-group" style="height: 50px;">
+                                <span class="input-group-text bg-light border-end-0 text-muted" style="border-radius: 12px 0 0 12px; border-color: var(--lux-border);"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" name="q" id="manual-loc" class="form-control border-start-0 bg-light" placeholder="Search by location..." value="{{ request.GET.q|default:'' }}" style="border-color: var(--lux-border);">
+                                <button type="button" id="auto-detect-btn" class="btn btn-outline-navy" style="border-radius: 0 12px 12px 0;" title="Auto-detect location"><i class="bi bi-crosshair"></i> Auto</button>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-2">
+                            <button class="btn w-100 fw-bold border {% if request.GET.type or request.GET.min_price or request.GET.max_price %}btn-filter-active{% else %}btn-light{% endif %}" 
+                                    type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#advancedFilters" 
+                                    aria-expanded="false" 
+                                    style="height: 50px; border-radius: 12px; border-color: var(--lux-border) !important;">
+                                <i class="bi bi-sliders me-1"></i> Filters
+                            </button>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <button class="btn btn-navy w-100 fw-bold shadow-sm" style="height: 50px; border-radius: 12px;" type="submit">
+                                <i class="bi bi-search me-1"></i> FIND
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="collapse {% if request.GET.type and request.GET.type != 'All' or request.GET.min_price or request.GET.max_price %}show{% endif %} mt-3" id="advancedFilters">
+                        <div class="row g-3 pt-3 border-top mt-1">
+                            <div class="col-lg-4">
+                                <label class="small fw-bold text-muted mb-1 text-uppercase">Property Type</label>
+                                <select name="type" class="form-select filter-input">
+                                    <option value="All">All Types</option>
+                                    <option value="Apartment" {% if request.GET.type == "Apartment" %}selected{% endif %}>Apartment</option>
+                                    <option value="Villa" {% if request.GET.type == "Villa" %}selected{% endif %}>Villa</option>
+                                    <option value="Penthouse" {% if request.GET.type == "Penthouse" %}selected{% endif %}>Penthouse</option>
+                                </select>
+                            </div>
+
+                            <div class="col-lg-3">
+                                <label class="small fw-bold text-muted mb-1 text-uppercase">Min Price (₹)</label>
+                                <input type="number" name="min_price" class="form-control filter-input" placeholder="e.g. 5000000" value="{{ request.GET.min_price|default:'' }}">
+                            </div>
+
+                            <div class="col-lg-3">
+                                <label class="small fw-bold text-muted mb-1 text-uppercase">Max Price (₹)</label>
+                                <input type="number" name="max_price" class="form-control filter-input" placeholder="e.g. 50000000" value="{{ request.GET.max_price|default:'' }}">
+                            </div>
+
+                            <div class="col-lg-2 d-flex align-items-end">
+                                <a href="{% url 'user_dashboard' %}" class="btn btn-outline-danger w-100 filter-input d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-x-circle me-1"></i> Clear
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="row g-4">
+                {% for prop in all_properties %}
+                <div class="col-md-4">
+                    <div class="glass-panel p-3 h-100 position-relative">
+                        <div class="property-img-container" 
+                             data-bs-toggle="modal" 
+                             data-bs-target="#view360Modal" 
+                             data-img-url="{% if prop.panorama_360 %}{{ prop.panorama_360.url }}{% elif prop.image %}{{ prop.image.url }}{% endif %}">
+                    
+                            <span class="badge-360"><i class="bi bi-view-stacked"></i> 360° Tour</span>
+                            
+                            {% if prop.image %}
+                                <img src="{{ prop.image.url }}" class="w-100 mb-3" style="height: 220px; object-fit: cover; border-radius: 12px;">
+                            {% endif %}
+                            
+                            <div class="view-360-overlay">
+                                <i class="bi bi-eye fs-1"></i>
+                                <span class="fw-bold mt-2">Explore 360°</span>
+                            </div>
+                        </div>
+                        
+                        <div class="px-2">
+                            <h5 class="fw-bold text-navy mb-1">{{ prop.title }}</h5>
+                            <p class="text-muted small mb-2"><i class="bi bi-geo-alt"></i> {{ prop.location }}</p>
+                            <div class="d-flex gap-2 mb-3">
+                                <div class="lifestyle-badge"><i class="bi bi-shield-check text-success"></i> 95+ Safety</div>
+                                <div class="lifestyle-badge"><i class="bi bi-p-circle text-primary"></i> 88 Walk</div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="fw-bold text-navy">₹{{ prop.price }}</span>
+                                <a href="{% url 'property_detail' prop.id %}" class="btn btn-sm btn-outline-navy rounded-pill px-3">Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center text-muted py-5">
+                    <i class="bi bi-search fs-1 mb-3 d-block text-black-50"></i>
+                    <h5>No properties match your filters.</h5>
+                    <p>Try adjusting your price range, property type, or location.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pills-listings" role="tabpanel">
+            <div class="glass-panel p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="font-playfair m-0 text-navy">Listed by You</h4>
+                    <span class="badge bg-navy rounded-pill px-3">{{ my_listings.count }} Total</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr class="small text-uppercase fw-bold text-muted">
+                                <th>Listing Info</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prop in my_listings %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if prop.image %}<img src="{{ prop.image.url }}" class="rounded-3 me-3" style="width: 50px; height: 50px; object-fit: cover;">{% endif %}
+                                        <div>
+                                            <div class="fw-bold text-navy">{{ prop.title }}</div>
+                                            <small class="text-muted"><i class="bi bi-geo-alt"></i> {{ prop.location }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="fw-bold text-navy">₹{{ prop.price }}</td>
+                                <td><span class="badge {% if prop.status == 'Available' %}bg-success{% else %}bg-danger{% endif %} rounded-pill">{{ prop.status }}</span></td>
+                                <td><a href="{% url 'admin_edit_property' prop.id %}" class="btn btn-sm btn-outline-navy rounded-pill px-3">Edit</a></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-5 text-muted">You haven't listed any properties yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pills-enquiries" role="tabpanel">
+            <div class="row">
+                {% if my_bookings %}
+                    {% for booking in my_bookings %}
+                    <div class="col-md-6 mb-4">
+                        <div class="glass-panel p-4 h-100 position-relative border-top border-4 
+                            {% if booking.response_status == 'Accepted' %}border-success
+                            {% elif booking.response_status == 'Rejected' %}border-danger
+                            {% else %}border-warning{% endif %}">
+                            
+                            <div class="position-absolute" style="top: 15px; right: 15px;">
+                                <form action="{% url 'delete_booking' booking.id %}" method="POST" onsubmit="return confirm('Clear history?');">
+                                    {% csrf_token %}<button type="submit" class="btn btn-link text-muted p-0 hover-danger"><i class="bi bi-trash3 fs-6"></i></button>
+                                </form>
+                            </div>
+
+                            <h5 class="fw-bold m-0 text-navy">{{ booking.property.title }}</h5>
+                            
+                            <div class="appointment-info mt-3">
+                                <i class="bi bi-calendar-check text-gold fs-4"></i>
+                                <div class="w-100">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted fw-bold">SCHEDULE STATUS</small>
+                                        <span class="badge {% if booking.response_status == 'Accepted' %}bg-success{% elif booking.response_status == 'Rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %} rounded-pill" style="font-size: 0.6rem;">{{ booking.response_status|upper }}</span>
+                                    </div>
+                                    <span class="fw-bold text-dark">
+                                        {% if booking.appointment_date %}
+                                            {{ booking.appointment_date|date:"l, M d" }} at {{ booking.appointment_time|time:"g:i A" }}
+                                        {% else %}
+                                            <span class="text-muted italic small">Awaiting confirmation...</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {% if booking.is_resolved %}
+                            <div class="agent-reply-box {% if booking.response_status == 'Rejected' %}rejected{% endif %} mb-3">
+                                <small class="fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Agent Response:</small>
+                                <p class="mb-0 text-dark small">{{ booking.agent_response }}</p>
+                            </div>
+
+                            {% if booking.response_status == 'Accepted' %}
+                            <div class="mt-4 pt-3 border-top">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6"><div class="map-container" style="height: 120px;"><iframe width="100%" height="100%" frameborder="0" src="https://maps.google.com/maps?q={{ booking.property.location|urlencode }}&t=k&z=17&output=embed"></iframe><div class="preview-label">Satellite</div></div></div>
+                                    <div class="col-6"><div class="map-container" style="height: 120px;"><iframe width="100%" height="100%" frameborder="0" src="https://maps.google.com/maps?q={{ booking.property.location|urlencode }}&z=14&output=embed"></iframe><div class="preview-label">Map</div></div></div>
+                                </div>
+                                <button class="btn btn-gold btn-sm w-100 rounded-pill py-2 mb-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#passModal{{ booking.id }}">VIEW OFFICIAL PASS</button>
+                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ booking.property.location|urlencode }}" target="_blank" class="btn btn-navy btn-sm w-100 rounded-pill py-2 shadow-sm">START GPS</a>
+                            </div>
+
+                            <div class="modal fade" id="passModal{{ booking.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered modal-sm">
+                                    <div class="modal-content bg-transparent border-0">
+                                        <div class="pass-card shadow-lg">
+                                            <div class="pass-header text-gold fw-bold text-uppercase">Viewing Pass</div>
+                                            <div class="pass-body text-center">
+                                                <div class="qr-wrapper mb-3"><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PASS-{{ booking.id }}" width="130"></div>
+                                                <h5 class="fw-bold mb-1 text-white">{{ booking.property.title }}</h5>
+                                                <div class="row g-0 border-top border-bottom border-secondary py-3 my-2" style="background: rgba(255,255,255,0.05);">
+                                                    <div class="col-6 border-end border-secondary text-center"><small class="d-block opacity-50 x-small text-uppercase">Date</small><span class="small fw-bold text-gold">{{ booking.appointment_date|date:"M d, Y" }}</span></div>
+                                                    <div class="col-6 text-center"><small class="d-block opacity-50 x-small text-uppercase">Time</small><span class="small fw-bold text-gold">{{ booking.appointment_time|time:"g:i A" }}</span></div>
+                                                </div>
+                                            </div>
+                                            <div class="pass-footer d-flex justify-content-between align-items-center"><span>{{ request.user.username }}</span><span class="text-gold fw-bold">#LX-{{ booking.id }}</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pills-calc">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="glass-panel p-5 shadow">
+                        <h3 class="font-playfair text-navy text-center mb-4">Investment Planner</h3>
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6"><label class="small fw-bold">Value (₹)</label><input type="number" id="emi-price" class="form-control border-2" value="50000000"></div>
+                            <div class="col-md-6"><label class="small fw-bold">Down (₹)</label><input type="number" id="emi-down" class="form-control border-2" value="10000000"></div>
+                            <div class="col-md-6"><label class="small fw-bold">Rate (%)</label><input type="number" id="emi-rate" class="form-control border-2" value="8.5" step="0.1"></div>
+                            <div class="col-md-6"><label class="small fw-bold">Years</label>
+                                <select id="emi-years" class="form-select border-2"><option value="10">10</option><option value="20" selected>20</option><option value="30">30</option></select>
+                            </div>
+                        </div>
+                        <div class="calc-display"><small class="text-white-50 text-uppercase d-block mb-2">Monthly EMI</small><h1 class="display-3 fw-bold text-gold mb-0" id="emi-result">₹0</h1></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="view360Modal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark border-0 rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-white font-playfair">360° Property Experience</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4"><div id="panorama-viewer"></div></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- 1. SAFE EMI LOGIC ---
+        const pIn = document.getElementById('emi-price');
+        const dIn = document.getElementById('emi-down');
+        const rIn = document.getElementById('emi-rate');
+        const yIn = document.getElementById('emi-years');
+        const res = document.getElementById('emi-result');
+
+        if(pIn && dIn && rIn && yIn && res) {
+            function calculateEMI() {
+                let P = parseFloat(pIn.value) - parseFloat(dIn.value);
+                let r = (parseFloat(rIn.value) / 12) / 100;
+                let n = parseFloat(yIn.value) * 12;
+                
+                if (P > 0 && r > 0 && n > 0) {
+                    let emi = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+                    res.innerText = "₹" + Math.round(emi).toLocaleString('en-IN');
+                } else {
+                    res.innerText = "₹0";
+                }
+            }
+            [pIn, dIn, rIn, yIn].forEach(i => i.addEventListener('input', calculateEMI));
+            calculateEMI();
+        }
+
+        // --- 2. SAFE 360 VIEWER LOGIC ---
+        const view360Modal = document.getElementById('view360Modal');
+        let pViewer = null;
+        view360Modal.addEventListener('shown.bs.modal', function (event) {
+            const imgUrl = event.relatedTarget.getAttribute('data-img-url');
+            pViewer = pannellum.viewer('panorama-viewer', {
+                "type": "equirectangular",
+                "panorama": imgUrl,
+                "autoLoad": true,
+                "compass": true
+            });
+        });
+        view360Modal.addEventListener('hidden.bs.modal', function () { if (pViewer) { pViewer.destroy(); pViewer = null; } });
+
+        // --- 3. SAFE GPS AUTO-DETECT ---
+        const autoBtn = document.getElementById('auto-detect-btn');
+        if(autoBtn) {
+            autoBtn.addEventListener('click', function() {
+                autoBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(async (pos) => {
+                        try {
+                            const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+                            const data = await resp.json();
+                            const area = data.address.suburb || data.address.city_district || "";
+                            if (area) {
+                                window.location.href = window.location.pathname + "?q=" + encodeURIComponent(area);
+                            } else {
+                                alert("Area name not found.");
+                                autoBtn.innerHTML = '<i class="bi bi-crosshair"></i> Auto';
+                            }
+                        } catch(e) {
+                            console.error(e);
+                            autoBtn.innerHTML = '<i class="bi bi-crosshair"></i> Auto';
+                        }
+                    }, () => { 
+                        alert("Permission Denied."); 
+                        autoBtn.innerHTML = '<i class="bi bi-crosshair"></i> Auto'; 
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

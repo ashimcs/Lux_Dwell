@@ -1,0 +1,172 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+    /* Full-height container with a soft background gradient */
+    .admin-registration-wrapper {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 0;
+    }
+
+    .lux-admin-card {
+        display: flex;
+        width: 100%;
+        max-width: 1100px;
+        background: white;
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: 0 40px 100px rgba(15, 23, 42, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Left Side: Visual Inspiration */
+    .admin-side-visual {
+        flex: 1;
+        background: linear-gradient(45deg, rgba(15, 23, 42, 0.8), rgba(212, 175, 55, 0.3)), 
+                    url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80');
+        background-size: cover;
+        background-position: center;
+        padding: 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        color: white;
+    }
+
+    .admin-side-visual h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 3rem;
+        line-height: 1.1;
+    }
+
+    .admin-side-visual .quote {
+        font-style: italic;
+        border-left: 3px solid var(--primary-gold);
+        padding-left: 20px;
+        font-size: 1.1rem;
+        color: rgba(255,255,255,0.8);
+    }
+
+    /* Right Side: The Form */
+    .admin-side-form {
+        flex: 1.2;
+        padding: 60px 80px;
+        background: #ffffff;
+    }
+
+    .form-step-indicator {
+        font-size: 0.7rem;
+        letter-spacing: 2px;
+        font-weight: 800;
+        color: var(--primary-gold);
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    /* Input Styling Refinement */
+    .input-wrapper { margin-bottom: 25px; }
+
+    .input-label {
+        font-weight: 700;
+        font-size: 0.75rem;
+        color: #64748B;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    /* Targeting the form fields injected by Django */
+    .admin-side-form input {
+        width: 100%;
+        padding: 12px 0;
+        border: none;
+        border-bottom: 2px solid #F1F5F9;
+        font-size: 1.05rem;
+        transition: all 0.3s ease;
+        background: transparent;
+        border-radius: 0;
+    }
+
+    .admin-side-form input:focus {
+        outline: none;
+        border-bottom-color: var(--primary-gold);
+    }
+
+    .btn-create-member {
+        background: var(--dark-navy);
+        color: white;
+        width: 100%;
+        padding: 18px;
+        border-radius: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        border: none;
+        margin-top: 30px;
+        transition: 0.4s;
+    }
+
+    .btn-create-member:hover {
+        background: var(--primary-gold);
+        box-shadow: 0 15px 30px rgba(212, 175, 55, 0.2);
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 992px) {
+        .admin-side-visual { display: none; }
+        .admin-side-form { padding: 40px; }
+    }
+</style>
+
+<div class="admin-registration-wrapper fade-in">
+    <div class="lux-admin-card">
+        
+        <div class="admin-side-visual">
+            <div>
+                <img src="https://cdn-icons-png.flaticon.com/512/906/906343.png" width="40" style="filter: invert(1); opacity: 0.8;" class="mb-4">
+                <h2>Expand <br>the <br><span style="color: var(--primary-gold);">Network.</span></h2>
+            </div>
+            <div class="quote">
+                "Excellence is not an act, but a habit. Curate your team with precision."
+            </div>
+        </div>
+
+        <div class="admin-side-form">
+            <span class="form-step-indicator">Security Protocol: Level 1</span>
+            <h3 class="font-playfair mb-5" style="font-size: 2.2rem;">New Member Profile</h3>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row">
+                    {% for field in form %}
+                        <div class="col-md-{% if field.name == 'first_name' or field.name == 'last_name' %}6{% else %}12{% endif %}">
+                            <div class="input-wrapper">
+                                <label class="input-label">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <small class="text-danger">{{ field.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn-create-member">
+                    CONFIRM & REGISTER <i class="bi bi-shield-check ms-2"></i>
+                </button>
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'custom_admin' %}" class="text-muted small text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i> Return to Command Center
+                    </a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

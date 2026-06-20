@@ -1,0 +1,82 @@
+{% extends 'core/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<style>
+    :root { --admin-bg: #f4f7fe; --navy: #0a2540; }
+    body { background-color: var(--admin-bg); }
+    
+    .edit-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid rgba(0,0,0,0.05);
+        padding: 40px;
+        margin-top: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+    }
+
+    .form-control {
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e0e7ff;
+    }
+
+    .btn-update {
+        background-color: var(--navy);
+        color: white;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .btn-update:hover {
+        background-color: #163a5f;
+        color: white;
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <a href="{% url 'custom_admin' %}" class="text-decoration-none text-muted mb-4 d-inline-block">
+                <i class="bi bi-arrow-left me-2"></i> Back to Admin Dashboard
+            </a>
+
+            <div class="edit-card fade-in">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-primary-subtle p-3 rounded-4 me-3">
+                        <i class="bi bi-pencil-square text-primary fs-4"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-playfair m-0">Edit Property</h2>
+                        <p class="text-muted m-0">Modifying: <strong>{{ property.title }}</strong></p>
+                    </div>
+                </div>
+
+                <hr class="mb-4 opacity-50">
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        {{ form|crispy }}
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'custom_admin' %}" class="btn btn-light px-4 rounded-3">Cancel</a>
+                        <button type="submit" class="btn btn-update px-5">
+                            <i class="bi bi-save me-2"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="text-center mt-4">
+                <small class="text-muted">Managed by LuxDwell Property Hub</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

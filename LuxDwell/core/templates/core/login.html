@@ -1,0 +1,223 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<style>
+    /* Full-bleed layout container */
+    .split-login {
+        display: flex;
+        min-height: 85vh;
+        background: white;
+        border-radius: 40px;
+        overflow: hidden;
+        box-shadow: 0 50px 100px rgba(0,0,0,0.1);
+        margin-top: 10px;
+    }
+
+    /* Left: The Visual Experience */
+    .login-visual {
+        flex: 1.2;
+        background: linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.7)), 
+                    url('https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+        background-size: cover;
+        background-position: center;
+        padding: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        color: white;
+        position: relative;
+    }
+
+    .login-visual h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 3.8rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 20px;
+        letter-spacing: -2px;
+    }
+
+    .login-visual p {
+        font-size: 1.1rem;
+        max-width: 400px;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Right: The Minimalist Form */
+    .login-form-side {
+        flex: 1;
+        padding: 80px 100px;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .login-header-meta {
+        text-transform: uppercase;
+        font-weight: 800;
+        font-size: 0.75rem;
+        letter-spacing: 3px;
+        color: var(--primary-gold);
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .login-form-side h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        color: var(--dark-navy);
+        margin-bottom: 40px;
+    }
+
+    /* Field Styling */
+    .input-container { margin-bottom: 30px; position: relative; }
+
+    .input-label {
+        font-weight: 700;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: #94A3B8;
+        margin-bottom: 10px;
+        display: block;
+        letter-spacing: 1px;
+    }
+
+    .lux-input {
+        width: 100%;
+        padding: 18px 0;
+        border: none;
+        border-bottom: 2px solid #F1F5F9;
+        background: transparent;
+        font-size: 1.1rem;
+        transition: all 0.4s ease;
+        color: var(--dark-navy);
+        border-radius: 0;
+    }
+
+    .lux-input:focus {
+        outline: none;
+        border-bottom-color: var(--primary-gold);
+    }
+
+    /* Modern Login Button */
+    .btn-portal {
+        background: var(--dark-navy);
+        color: white;
+        padding: 20px;
+        width: 100%;
+        border-radius: 16px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        border: none;
+        margin-top: 20px;
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .btn-portal:hover {
+        background: var(--primary-gold);
+        transform: scale(1.02);
+        box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+    }
+
+    /* Bottom Link */
+    .reg-link {
+        margin-top: 40px;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #64748B;
+    }
+
+    .reg-link a {
+        color: var(--dark-navy);
+        font-weight: 800;
+        text-decoration: none;
+        border-bottom: 2px solid var(--primary-gold);
+        transition: 0.3s;
+    }
+
+    .reg-link a:hover {
+        background: var(--primary-gold);
+        color: white;
+    }
+
+    @media (max-width: 1200px) {
+        .login-visual { display: none; }
+        .login-form-side { padding: 40px; }
+    }
+
+    /* Error Alert Styling */
+    .alert-error-lux {
+        background: #FFF1F2;
+        border-left: 4px solid #E11D48;
+        padding: 16px 24px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        color: #9F1239;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(225, 29, 72, 0.08);
+        /* Animation to catch attention */
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="split-login fade-in">
+    <div class="login-visual">
+        <div class="mb-5">
+            <span class="badge rounded-pill bg-white text-dark px-3 py-2">MEMBER LOGIN</span>
+        </div>
+        <h2>Welcome <br>to the <br><span style="color:var(--primary-gold)">Portfolio.</span></h2>
+        <p>Access your curated real estate collection and manage your listings with LuxDwell's elite tools.</p>
+    </div>
+
+    <div class="login-form-side">
+        <span class="login-header-meta">SECURE ACCESS</span>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert-error-lux">
+                    <i class="bi bi-shield-lock-fill me-3"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        <h3>Sign In</h3>
+
+        <form method="POST" id="portalLoginForm">
+            {% csrf_token %}
+
+            <div class="input-container">
+                <label class="input-label">Username</label>
+                <input type="text" name="username" class="lux-input" required placeholder="Your ID">
+            </div>
+
+            <div class="input-container">
+                <label class="input-label">Password</label>
+                <input type="password" name="password" class="lux-input" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-portal">
+                ENTER PORTAL <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+        </form>
+
+        <div class="reg-link">
+            Not a member yet? <a href="{% url 'register' %}">REGISTER NOW</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('portalLoginForm').onsubmit = function() {
+        const btn = document.querySelector('.btn-portal');
+        btn.innerHTML = 'AUTHORIZING... <span class="spinner-grow spinner-grow-sm"></span>';
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<style>
+    .property-img { width: 100%; height: 400px; object-fit: cover; border-radius: 10px; }
+    .price-tag { color: var(--primary-gold); font-size: 2rem; font-weight: bold; }
+    .booking-card { background: #fff; border-left: 5px solid var(--primary-gold); }
+</style>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        {% if property.image %}
+            <img src="{{ property.image.url }}" class="property-img shadow-sm" alt="Property Image">
+        {% endif %}
+        <div class="mt-4">
+            <span class="badge bg-success mb-2">{{ property.status }}</span>
+            <h2>{{ property.title }}</h2>
+            <p class="text-muted"><i class="bi bi-geo-alt"></i> {{ property.location }}</p>
+            <div class="price-tag mb-3">₹{{ property.price }}</div>
+            <hr>
+            <h5>Description</h5>
+            <p class="text-secondary" style="line-height: 1.8;">{{ property.description }}</p>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card booking-card p-4 shadow-sm">
+            <h4>Contact Agent</h4>
+            <p class="small text-muted">Fill out the form below to schedule a visit or ask for more details.</p>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Your Message</label>
+                    <textarea name="message" class="form-control" rows="6" placeholder="I am interested in this {{ property.property_type }}..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 btn-lg" id="btnBook">Submit Inquiry</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('btnBook').onclick = function() {
+        this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending...';
+    };
+</script>
+{% endblock %}

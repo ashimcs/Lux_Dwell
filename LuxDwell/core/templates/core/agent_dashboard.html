@@ -1,0 +1,253 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+    :root { 
+        --agent-navy: #0f172a; 
+        --agent-gold: #c5a059; 
+        --lux-border: #e2e8f0;
+    }
+    body { background-color: #f1f5f9; }
+    
+    /* Header & Stats */
+    .agent-header { 
+        background: linear-gradient(135deg, var(--agent-navy) 0%, #1e293b 100%); 
+        color: white; border-radius: 24px; padding: 40px; margin-bottom: 30px; 
+    }
+    .stat-card {
+        background: white; border-radius: 20px; padding: 20px;
+        border-bottom: 4px solid var(--agent-gold);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    /* Calendar Strip */
+    .calendar-strip {
+        display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;
+    }
+    .calendar-card {
+        min-width: 180px; background: white; border-radius: 15px; padding: 15px;
+        border-left: 4px solid var(--agent-gold); border: 1px solid var(--lux-border);
+    }
+
+    /* Inquiry Cards */
+    .glass-panel { background: white; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .inquiry-card { background: white; border-radius: 20px; border: 1px solid #e2e8f0; transition: 0.3s; overflow: hidden; }
+    .inquiry-card:hover { border-color: var(--agent-gold); transform: translateY(-2px); }
+    .status-form { background: #f8fafc; border-radius: 12px; padding: 15px; border: 1px solid #edf2f7; }
+    
+    .nav-tabs-lux .nav-link { color: #64748b; font-weight: 600; border: none; padding: 1rem 1.5rem; }
+    .nav-tabs-lux .nav-link.active { color: var(--agent-navy); border-bottom: 3px solid var(--agent-gold); background: transparent; }
+    
+    .appointment-badge { background: #fff3cd; color: #856404; padding: 8px 15px; border-radius: 10px; border: 1px solid #ffeeba; }
+
+    /* Quick Action Buttons */
+    .btn-status-toggle {
+        padding: 0.2rem 0.6rem;
+        font-size: 0.75rem;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    /* Delete Button Hover */
+    .hover-danger:hover {
+        color: #ef4444 !important;
+        transform: scale(1.1);
+        transition: 0.2s;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="agent-header fade-in mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="font-playfair mb-1 text-white">Agent Control Center</h1>
+                <p class="mb-0 opacity-75">Welcome, {{ request.user.username }}</p>
+            </div>
+            <a href="{% url 'add_property' %}" class="btn btn-gold btn-lg rounded-pill px-4 fw-bold shadow">
+                <i class="bi bi-plus-circle me-2"></i>New Listing
+            </a>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="stat-card text-dark">
+                    <small class="text-muted fw-bold">TOTAL REVENUE</small>
+                    <h3 class="fw-bold mb-0">₹{{ total_revenue|default:"0" }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-dark">
+                    <small class="text-muted fw-bold">PROPERTIES SOLD</small>
+                    <h3 class="fw-bold mb-0">{{ sold_count|default:"0" }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-dark">
+                    <small class="text-muted fw-bold">PENDING TASKS</small>
+                    <h3 class="fw-bold mb-0 text-danger">{{ pending_inquiries|default:"0" }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-dark">
+                    <small class="text-muted fw-bold">ACTIVE LISTINGS</small>
+                    <h3 class="fw-bold mb-0">{{ total_listings|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-5">
+        <h5 class="font-playfair mb-3"><i class="bi bi-calendar3 me-2 text-gold"></i>Viewing Schedule</h5>
+        <div class="calendar-strip">
+            {% for appt in upcoming_appointments %}
+            <div class="calendar-card shadow-sm">
+                <div class="text-gold fw-bold small mb-1">{{ appt.appointment_date|date:"D, M d" }}</div>
+                <div class="fw-bold text-navy">{{ appt.appointment_time|time:"g:i A" }}</div>
+                <div class="text-truncate mt-2 small fw-bold">{{ appt.property.title }}</div>
+                <div class="text-muted x-small">Client: {{ appt.user.username }}</div>
+            </div>
+            {% empty %}
+            <div class="text-muted p-4 bg-white rounded-4 border w-100 text-center small">No upcoming appointments.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs nav-tabs-lux mb-4" id="agentTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="inquiries-tab" data-bs-toggle="tab" data-bs-target="#inquiries-panel">Client Inquiries</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory-panel">Manage Inventory</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="agentTabContent">
+        <div class="tab-pane fade show active" id="inquiries-panel">
+            {% for inquiry in inquiries %}
+            <div class="inquiry-card p-4 mb-4 shadow-sm position-relative">
+                <div class="position-absolute" style="top: 20px; right: 20px;">
+                    <form action="{% url 'agent_delete_inquiry' inquiry.id %}" method="POST" onsubmit="return confirm('Clear this inquiry from your dashboard?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link text-muted p-0 hover-danger" title="Clear History">
+                            <i class="bi bi-trash3 fs-5"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-start mb-3 pe-5">
+                    <div>
+                        <h5 class="mb-0 fw-bold text-navy">{{ inquiry.property.title }}</h5>
+                        <small class="text-muted">Client: <span class="text-navy fw-bold">{{ inquiry.user.username }}</span></small>
+                    </div>
+                    <span class="badge {% if inquiry.response_status == 'Accepted' %}bg-success{% elif inquiry.response_status == 'Rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %} px-3 rounded-pill">
+                        {{ inquiry.response_status|default:"New Request" }}
+                    </span>
+                </div>
+                
+                <div class="d-flex gap-2 mb-3">
+                    <div class="appointment-badge small">
+                        <i class="bi bi-clock me-1"></i> {{ inquiry.appointment_date }} @ {{ inquiry.appointment_time }}
+                    </div>
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill py-0 px-2" style="font-size: 0.7rem;" type="button" data-bs-toggle="collapse" data-bs-target="#hist{{ inquiry.id }}">
+                        History
+                    </button>
+                </div>
+
+                <div class="collapse mb-3" id="hist{{ inquiry.id }}">
+                    <div class="p-2 bg-light rounded border x-small text-muted">
+                        Total inquiries by this user: {{ inquiry.user.bookings.count }}
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 mb-3 small">"{{ inquiry.message }}"</div>
+
+                <form action="{% url 'respond_to_inquiry' inquiry.id %}" method="POST" class="status-form">
+                    {% csrf_token %}
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <textarea name="agent_response" class="form-control form-control-sm" rows="2" placeholder="Your reply...">{{ inquiry.agent_response|default:'' }}</textarea>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="status_update" class="form-select form-select-sm">
+                                <option value="Available" {% if inquiry.property.status == 'Available' %}selected{% endif %}>Available</option>
+                                <option value="Sold" {% if inquiry.property.status == 'Sold' %}selected{% endif %}>Sold</option>
+                                <option value="Rented" {% if inquiry.property.status == 'Rented' %}selected{% endif %}>Rented</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="response_status" class="form-select form-select-sm">
+                                <option value="Pending" {% if inquiry.response_status == 'Pending' %}selected{% endif %}>Decision</option>
+                                <option value="Accepted" {% if inquiry.response_status == 'Accepted' %}selected{% endif %}>Accept</option>
+                                <option value="Rejected" {% if inquiry.response_status == 'Rejected' %}selected{% endif %}>Reject</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-dark btn-sm rounded-pill px-4">Update Client</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            {% empty %}
+            <div class="text-center py-5 glass-panel">
+                <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                <p class="text-muted">Your inbox is empty.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="tab-pane fade" id="inventory-panel">
+            <div class="glass-panel p-4">
+                <h5 class="fw-bold mb-4">Global Inventory Control</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Property Details</th>
+                                <th>Current Status</th>
+                                <th>Quick Actions</th>
+                                <th>Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prop in properties %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-navy">{{ prop.title }}</div>
+                                    <div class="x-small text-muted">₹{{ prop.price }} | {{ prop.location }}</div>
+                                </td>
+                                <td>
+                                    {% if prop.status == 'Available' %}
+                                        <span class="badge bg-success-subtle text-success border border-success px-3 rounded-pill">Available</span>
+                                    {% elif prop.status == 'Sold' %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger px-3 rounded-pill">Sold</span>
+                                    {% elif prop.status == 'Rented' %}
+                                        <span class="badge bg-info-subtle text-info border border-info px-3 rounded-pill">Rented</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary px-3 rounded-pill">{{ prop.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form action="{% url 'toggle_property_status' prop.id %}" method="POST" class="d-flex gap-1">
+                                        {% csrf_token %}
+                                        <button type="submit" name="new_status" value="Available" class="btn btn-status-toggle btn-outline-success {% if prop.status == 'Available' %}active{% endif %}" title="Available">AVAIL</button>
+                                        <button type="submit" name="new_status" value="Sold" class="btn btn-status-toggle btn-outline-danger {% if prop.status == 'Sold' %}active{% endif %}" title="Mark Sold">SOLD</button>
+                                        <button type="submit" name="new_status" value="Rented" class="btn btn-status-toggle btn-outline-info {% if prop.status == 'Rented' %}active{% endif %}" title="Mark Rented">RENT</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <a href="{% url 'admin_edit_property' prop.id %}" class="btn btn-sm btn-light border rounded-pill">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-4">No properties listed.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

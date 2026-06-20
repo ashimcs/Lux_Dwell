@@ -1,0 +1,260 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+    :root {
+        --lux-navy: #0f172a;
+        --lux-gold: #c5a059;
+        --lux-slate: #f8fafc;
+        --lux-border: #e2e8f0;
+    }
+
+    /* Modern Mesh Gradient Background (No Image Needed) */
+    body {
+        background-color: #f1f5f9;
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(197, 160, 89, 0.05) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.05) 0px, transparent 50%);
+        min-height: 100vh;
+    }
+
+    .form-wrapper {
+        max-width: 850px;
+        margin: 60px auto;
+        perspective: 1000px;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .form-header {
+        background: var(--lux-navy);
+        padding: 50px 40px;
+        color: white;
+        text-align: center;
+    }
+
+    .form-header h2 {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin-bottom: 10px;
+    }
+
+    .header-accent {
+        width: 50px;
+        height: 3px;
+        background: var(--lux-gold);
+        margin: 0 auto 20px;
+    }
+
+    .form-body {
+        padding: 60px;
+    }
+
+    .section-title {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--lux-gold);
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .section-title::after {
+        content: "";
+        height: 1px;
+        flex-grow: 1;
+        background: linear-gradient(to right, var(--lux-border), transparent);
+    }
+
+    /* Refined Input Styling */
+    .form-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #334155;
+        margin-bottom: 10px;
+    }
+
+    .form-control, .form-select {
+        border-radius: 16px;
+        padding: 14px 18px;
+        border: 1px solid var(--lux-border);
+        background-color: white;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.95rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--lux-gold);
+        box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.1);
+        transform: translateY(-1px);
+    }
+
+    /* Modern Upload Area */
+    .upload-box {
+        border: 2px dashed var(--lux-border);
+        border-radius: 20px;
+        padding: 40px 20px;
+        text-align: center;
+        background: #fcfcfd;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .upload-box:hover {
+        border-color: var(--lux-gold);
+        background: #fffbf5;
+    }
+
+    .upload-icon-circle {
+        width: 60px;
+        height: 60px;
+        background: rgba(197, 160, 89, 0.1);
+        color: var(--lux-gold);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 1.5rem;
+    }
+
+    /* Elegant Submit Button */
+    .btn-submit {
+        background: var(--lux-navy);
+        color: white;
+        padding: 16px 45px;
+        border-radius: 16px;
+        font-weight: 700;
+        border: none;
+        transition: all 0.3s;
+        box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2);
+    }
+
+    .btn-submit:hover {
+        background: var(--lux-gold);
+        transform: translateY(-3px);
+        box-shadow: 0 20px 25px -5px rgba(197, 160, 89, 0.3);
+    }
+
+    .discard-link {
+        color: #94a3b8;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .discard-link:hover {
+        color: #ef4444;
+    }
+</style>
+
+<div class="form-wrapper fade-in">
+    <div class="glass-card">
+        <div class="form-header">
+            <div class="header-accent"></div>
+            <h2>Update Property Details</h2>
+            <p class="text-white-50 small mb-0">Refine your listing to attract premium inquiries.</p>
+        </div>
+
+        <div class="form-body">
+            <form method="POST" enctype="multipart/form-data" id="propertyForm">
+                {% csrf_token %}
+
+                <div class="section-title">Essential Info</div>
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <label class="form-label">Property Title</label>
+                        {{ form.title }}
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label">Category</label>
+                        {{ form.property_type }}
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label">Valuation (₹)</label>
+                        {{ form.price }}
+                    </div>
+                </div>
+
+                <div class="section-title">Location & Identity</div>
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <label class="form-label">Address</label>
+                        {{ form.location }}
+                    </div>
+                    <div class="col-md-12 mb-4">
+                        <label class="form-label">Featured Media</label>
+                        <div class="upload-box" onclick="document.getElementById('id_image').click();">
+                            <div class="upload-icon-circle">
+                                <i class="bi bi-camera"></i>
+                            </div>
+                            <p class="mb-0 fw-bold">Update Cover Photo</p>
+                            <p class="text-muted small">Drag and drop or click to browse</p>
+                            <div style="display:none">{{ form.image }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">Narrative</div>
+                <div class="mb-4">
+                    {{ form.description }}
+                </div>
+
+                <div class="row align-items-center mb-5">
+                    <div class="col-md-6">
+                        <label class="form-label">Listing Visibility</label>
+                        {{ form.status }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                    <a href="{% url 'custom_admin' %}" class="discard-link small">
+                        <i class="bi bi-x-circle me-1"></i> Cancel Changes
+                    </a>
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        Save & Update Listing
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Visual feedback for file selection
+    const fileInput = document.querySelector('input[type="file"]');
+    const uploadBox = document.querySelector('.upload-box');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const circle = uploadBox.querySelector('.upload-icon-circle');
+                circle.innerHTML = '<i class="bi bi-check-lg"></i>';
+                circle.style.background = '#22c55e';
+                circle.style.color = 'white';
+                uploadBox.querySelector('p.fw-bold').innerText = "File Ready";
+                uploadBox.querySelector('p.text-muted').innerText = this.files[0].name;
+            }
+        });
+    }
+
+    // Submit Animation
+    document.getElementById('propertyForm').onsubmit = function() {
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating...';
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.8';
+    };
+</script>
+{% endblock %}

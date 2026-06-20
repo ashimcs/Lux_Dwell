@@ -1,0 +1,229 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+    :root { --admin-bg: #f4f7fe; --navy: #0a2540; }
+    .main-content { background-color: var(--admin-bg); min-height: 100vh; padding-top: 20px; }
+    
+    .glass-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid rgba(0,0,0,0.05);
+        padding: 25px;
+        margin-bottom: 24px;
+        transition: transform 0.2s;
+    }
+
+    .status-indicator {
+        width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px;
+    }
+    .status-online { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+
+    .action-btn {
+        padding: 8px 16px; border-radius: 12px; font-size: 0.85rem; transition: 0.3s;
+    }
+
+    .badge-role {
+        font-size: 0.7rem; letter-spacing: 1px; padding: 5px 10px; border-radius: 8px;
+    }
+    
+    .bg-navy { background-color: var(--navy); }
+    .text-navy { color: var(--navy); }
+</style>
+
+<div class="container-fluid py-4 fade-in">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="glass-card shadow-sm">
+                <h5 class="mb-4 font-playfair">System Health</h5>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Server Status</small>
+                    <span class="status-indicator status-online"></span><strong>Operational</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">System Load</small>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: 24%"></div>
+                    </div>
+                </div>
+                <hr>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'admin_add_user' %}" class="btn btn-dark action-btn">
+                        <i class="bi bi-person-plus me-2"></i>Create New User
+                    </a>
+                    <a href="/admin/" class="btn btn-outline-navy action-btn">Global Settings</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="glass-card text-center border-bottom border-warning border-4">
+                        <h2 class="stat-number">{{ total_users }}</h2>
+                        <p class="text-muted mb-0">Platform Members</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="glass-card text-center border-bottom border-primary border-4">
+                        <h2 class="stat-number">{{ agents_count }}</h2>
+                        <p class="text-muted mb-0">Verified Agents</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="glass-card text-center border-bottom border-success border-4">
+                        <h2 class="stat-number">{{ total_listings }}</h2>
+                        <p class="text-muted mb-0">Total Properties</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="m-0 font-playfair">Pending Approvals <span class="badge bg-danger ms-2">{{ pending_properties.count }}</span></h4>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Property</th>
+                                <th>Agent/Owner</th>
+                                <th>Price</th>
+                                <th class="text-end">Verification</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prop in pending_properties %}
+                            <tr>
+                                <td><strong>{{ prop.title }}</strong></td>
+                                <td>{{ prop.owner.username }}</td>
+                                <td>${{ prop.price }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'approve_property' prop.id %}" class="btn btn-success btn-sm rounded-pill px-3 me-1">
+                                        <i class="bi bi-check-lg"></i> Approve
+                                    </a>
+                                    <a href="{% url 'reject_property' prop.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                        <i class="bi bi-x-lg"></i> Reject
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-4 text-muted">No pending verifications.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="glass-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="m-0 font-playfair">Property Management Hub</h4>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="small text-uppercase text-muted">
+                            <tr>
+                                <th>Property Details</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prop in all_properties %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">{{ prop.title }}</div>
+                                    <small class="text-muted">{{ prop.location }} | ${{ prop.price }}</small>
+                                </td>
+                                <td>
+                                    {% if prop.is_approved %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">LIVE</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">PENDING</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group">
+                                        <a href="{% url 'admin_edit_property' prop.id %}" class="btn btn-light btn-sm px-3">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <a href="{% url 'delete_property' prop.id %}" 
+                                           class="btn btn-outline-danger btn-sm px-3"
+                                           onclick="return confirm('Delete this property permanently?');">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h4 class="mb-4 font-playfair">User Management</h4>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead class="small text-uppercase text-muted">
+                            <tr>
+                                <th>User Info</th>
+                                <th>Access Level</th>
+                                <th class="text-end">Management</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr class="align-middle">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-navy text-white rounded-circle p-2 me-3" style="width:40px;height:40px;text-align:center; font-weight: bold;">
+                                            {{ user.username|first|upper }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">{{ user.username }}</div>
+                                            <small class="text-muted">{{ user.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if user.profile.role == 'agent' %}
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle badge-role">AGENT</span>
+                                    {% elif user.is_staff %}
+                                        <span class="badge bg-dark text-white badge-role">ADMIN</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark border badge-role">MEMBER</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm rounded-3" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2">
+                                            <li>
+                                                <a class="dropdown-item rounded" href="{% url 'toggle_agent' user.id %}">
+                                                    <i class="bi bi-arrow-left-right me-2"></i>
+                                                    {% if user.profile.role == 'agent' %}Demote to Member{% else %}Promote to Agent{% endif %}
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger rounded" href="{% url 'delete_user' user.id %}" 
+                                                   onclick="return confirm('Delete {{ user.username }}?');">
+                                                    <i class="bi bi-trash3 me-2"></i>Delete User
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
